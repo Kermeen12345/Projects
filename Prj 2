@@ -1,0 +1,185 @@
+#********MORTALITY RATE MANAGEMENT APPLICATION USING PYTHON GUI
+
+
+
+import tkinter as tk
+from tkinter import messagebox
+import sqlite3
+import re
+import os
+
+# Declare entry_search in the global scope
+entry_search = None
+entry_username = None
+entry_contact_number = None
+entry_id_proof = None
+
+def show_terms():
+    global terms_window
+    terms_window = tk.Toplevel(root)
+    terms_window.title("TERMS AND CONDITIONS")
+    terms_text = """
+    Terms and Conditions:
+
+    1. The user must be the authorized officer of the organization.
+    2. No mis-leading or false information shall be updated.
+    3. The data shall be used under supervision only and shall stay confidential to ordinary people.
+    4. The data can be accessed globally.
+    5. The data may vary a little bit.
+    6. The user must fill all the details carefully and correctly. Any misleading information shall
+       end up the user facing serious punishments (including life-time imprisonment).
+    7. This data consists of the death of citizens around the world.
+    8. If the user ends up in the case of misuse of data for any reasons, heavy penalties shall be
+       implemented (including the death penalty).
+    9. You must agree to these terms to proceed.
+    10. Any violation of these terms may result in consequences.
+    Note : enter user name and password using numbers and characters. Contact
+            number should only have 10-digit number. User must enter the service
+            Id Number as Id Proof.
+    """
+    terms_label = tk.Label(terms_window, text=terms_text, padx=10, pady=10)
+    terms_label.pack()
+    agree_button = tk.Button(terms_window, text="I Agree", command=close_terms_show_registration)
+    agree_button.pack()
+
+def close_terms_show_registration():
+    root.deiconify()  # Show the main window
+    terms_window.destroy()  # Close the terms window
+    show_registration_page()
+
+def show_registration_page():
+    main_label.pack_forget()
+    terms_button.pack_forget()
+
+    frame_registration.pack(padx=10, pady=10)
+
+    global entry_username, entry_contact_number, entry_id_proof  # Declare entry_username as a global variable
+    label_username = tk.Label(frame_registration, text="User Name:")
+    label_username.grid(row=0, column=0, padx=5, pady=5)
+    entry_username = tk.Entry(frame_registration)
+    entry_username.grid(row=0, column=1, padx=5, pady=5)
+
+    label_contact_number = tk.Label(frame_registration, text="Contact Number:")
+    label_contact_number.grid(row=1, column=0, padx=5, pady=5)
+    entry_contact_number = tk.Entry(frame_registration)
+    entry_contact_number.grid(row=1, column=1, padx=5, pady=5)
+
+    label_id_proof = tk.Label(frame_registration, text="Identification Proof:")
+    label_id_proof.grid(row=2, column=0, padx=5, pady=5)
+    entry_id_proof = tk.Entry(frame_registration)
+    entry_id_proof.grid(row=2, column=1, padx=5, pady=5)
+
+    button_register = tk.Button(frame_registration, text="Register", command=register_user)
+    button_register.grid(row=3, column=0, columnspan=2, pady=10)
+
+    global entry_search  # Declare entry_search as a global variable
+    label_search = tk.Label(frame_registration, text="Enter Name to Search:")
+    label_search.grid(row=4, column=0, padx=5, pady=5)
+    entry_search = tk.Entry(frame_registration)
+    entry_search.grid(row=4, column=1, padx=5, pady=5)
+
+    button_search = tk.Button(frame_registration, text="Search Information", command=search_information)
+    button_search.grid(row=5, column=0, columnspan=2, pady=10)
+
+
+# Stored data
+fname = ['Anthony', 'Juliana', 'Jassica', 'Elizabeth', 'Jack', 'Emma', 'Margret', 'Liam', 'Ethan', 'Sarah']
+lname = ['Decoster','Spencer','Martin','Smith','James','Thomas','Wilson','Williams','Daniel','Oliver']
+age = [62,35,22,98,75,39,65,70,60,35]
+gender = ['Male','Female','Female','Female','Male','Female','Female','Male','Male','Female']
+cause_of_death = ['Due to heart attack','Sentenced to death','Victim of murder','Due to brain damage','Due to hyper-diabetes','Suicide','Due to heart attack',
+                 'Due to hyper-stress level','Due to road accident','Rape victim']
+identification_proof = [345678,901234,932789,890012,102578,789677,789654,785607,963000,22580]
+state = ['California','Texas','Florida','Hawaii','Alaska','Ohio','New Jersy','Indiana','Utah','Oregon']
+hospital = ['abc','def','ijk','lmn','pqr','rst','peace','xyz','rest well','pigeon']
+
+# Function to handle user registration
+def register_user():
+    username = entry_username.get()
+    contact_number = entry_contact_number.get()
+    id_proof = entry_id_proof.get()
+
+    # Store the user details or perform other actions as needed
+    # For simplicity, just displaying a message here
+    messagebox.showinfo("Registration", "User registration successful!")
+
+#Function to move on Next window
+def on_next_button_click():
+    try:
+        validate_all_fields()
+
+        if all_validations_passed():
+            # Open a new window (Toplevel)
+            new_window = tk.Toplevel(root)
+            new_window.title("New Window")
+
+            # Add widgets or perform actions in the new window
+
+            #print("Next button clicked")
+        else:
+            messagebox.showinfo("Info", "All information must be filled. ")
+
+    except ValueError as e:
+        messagebox.showerror("Error", str(e))
+
+# Function to handle information search
+def search_information():
+    name_to_search = entry_search.get()
+
+    if name_to_search in fname:
+        index = fname.index(name_to_search)
+        result_text.set(
+            f"First Name: Late {fname[index]}\n"
+            f"Last Name: {lname[index]}\n"
+            f"Gender: {gender[index]}\n"
+            f"Age: {age[index]}\n"
+            f"Cause of Death: {cause_of_death[index]}\n"
+            f"Identification Proof: {identification_proof[index]}\n"
+            f"State: {state[index]}\n"
+            f"Hospital: {hospital[index]}"
+        )
+    else:
+        result_text.set("Data not found for the entered name. Kindly try again!")
+
+#Function to check whether all the fields are fulfilled or not
+def all_validations_passed():
+    # Add conditions to check if all validations passed
+    return (
+        entry_username.get() and
+        entry_contact_number.get() and
+        entry_id_proof.get()
+    )
+
+# Add your placeholder for validate_all_fields() here
+def validate_all_fields():
+    # Add your validation logic here
+    pass
+
+
+# Create the main application window
+root = tk.Tk()
+root.title("HOME")
+
+main_label = tk.Label(root, text="Welcome to the Mortality Rate Management Application")
+main_label.pack()
+
+terms_button = tk.Button(root, text="View Terms and Conditions", command=show_terms)
+terms_button.pack()
+
+# Registration Frame
+frame_registration = tk.Frame(root)
+
+# Result Frame
+frame_result = tk.Frame(root)
+frame_result.pack(padx=10, pady=10)
+
+result_text = tk.StringVar()
+label_result = tk.Label(frame_result, textvariable=result_text)
+label_result.pack()
+
+#To move on next window
+NEXT_btn = tk.Button(root, text='NEXT', command=on_next_button_click)
+NEXT_btn.config(fg="black", bg="powder blue", font=("Helvetica", 18))
+
+# Start the Tkinter event loop
+root.mainloop()
