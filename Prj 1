@@ -1,0 +1,76 @@
+---------------------------------------------------------------------------CODE
+#Registration
+print("---USER REGISTRATION------------")
+print()
+
+print("ENTER THE DETAILS FOR USER REGISTRATION")
+print()
+
+l1=[input("Enter the user name :")]
+l2=[input("Enter the password :")]
+l3=[input("Enter the confirm password :")]
+print()
+
+if l2==l3:
+  print("Input taken successfully !")
+else:
+  print("Check inputs and try again.")
+
+print()
+print()
+print()
+
+#Login Page
+print("----USER LOGIN----")
+print()
+
+username=input("Enter username :")
+passcode=input("Enter password :")
+def verify():
+  if l1==username and l2==passcode and l3==passcode:
+    print("You can access successfully")
+  else:
+    print("You can't access. Try again !")
+
+verify()
+
+print()
+print()
+print()
+
+#Input stored
+fname = ['Anthony','Juliana','Jassica','Elizabeth','Jack','Emma','Margret','Liam','Ethan','Sarah']
+lname = ['Decoster','Spencer','Martin','Smith','James','Thomas','Wilson','Williams','Daniel','Oliver']
+age = [62,35,22,98,75,39,65,70,60,35]
+gender = ['Male','Female','Female','Female','Male','Female','Female','Male','Male','Female']
+cause_of_death = ['Due to heart attack','Sentenced to death','Victim of murder','Due to brain damage','Due to hyper-diabetes','Suicide','Due to heart attack',
+                 'Due to hyper-stress level','Due to road accident','Rape victim']
+identification_proof = [345678,901234,932789,890012,102578,789677,789654,785607,963000,22580]
+state = ['California','Texas','Florida','Hawaii','Alaska','Ohio','New Jersy','Indiana','Utah','Oregon']
+hospital = ['abc','def','ijk','lmn','pqr','rst','peace','xyz','rest well','pigeon']
+
+#search
+print("-----LOOKING FOR")
+print()
+
+n1 = input("Enter the name of the deceased :")
+i = fname.index(n1)
+
+print()
+print()
+print()
+
+#result
+print("----INFORMATION------------")
+print()
+
+print("First Name                     :","Late ",fname[i])
+print("Last Name                      :",lname[i])
+print("Gender                         :",gender[i])
+print("Age                            :",age[i])
+print("Cause of death                 :",cause_of_death[i])
+print("Identification proof           :",identification_proof[i])
+print("State                          :",state[i])
+print("Hospital issuing proof of death:",hospital[i])
+
+print("---------------END------------------")
