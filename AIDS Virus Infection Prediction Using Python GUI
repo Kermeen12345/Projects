@@ -1,0 +1,99 @@
+#Link for Collab Notebook of AIDS Virus Infection Prediction : https://colab.research.google.com/drive/1Tb2kHuCO5-QKClH11FlPjTGRqQ99Gfaw?usp=sharing
+#Link for Collab Notebook of All Data Visualizations in Data Science using Python : https://colab.research.google.com/drive/1n_0PrM1cgvuRlz9QeR-vWtu-LExmrxeG?usp=sharing
+#Link for Dataset : https://www.kaggle.com/datasets/aadarshvelu/aids-virus-infection-prediction?resource=download
+
+import tkinter as tk
+from tkinter import filedialog, messagebox
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+
+class AIDSInfectionPredictionApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("AIDS Virus Infection Prediction")
+        
+        self.file_path = None
+        self.df = None
+        self.classifier = None
+
+        # Set the background color and font color
+        self.root.configure(bg='light blue')
+        self.create_widgets()
+
+    def create_widgets(self):
+        load_button = tk.Button(self.root, text="Load Dataset", command=self.load_dataset, bg='cyan', fg='black')
+        load_button.pack(pady=10)
+        
+        train_button = tk.Button(self.root, text="Train Model", command=self.train_model, bg='cyan', fg='black')
+        train_button.pack(pady=10)
+        
+        predict_button = tk.Button(self.root, text="Predict", command=self.predict, bg='cyan', fg='black')
+        predict_button.pack(pady=10)
+
+    def load_dataset(self):
+        self.file_path = filedialog.askopenfilename()
+        if self.file_path:
+            self.df = pd.read_csv(self.file_path)
+            messagebox.showinfo("Dataset Loaded", "Dataset loaded successfully!")
+
+    def train_model(self):
+        if self.df is not None:
+            # Assuming 'infected' is the target variable and the rest are features
+            X = self.df.drop('infected', axis=1)
+            y = self.df['infected']
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+            
+            # Using Logistic Regression for training the model
+            self.classifier = LogisticRegression(max_iter=1000)
+            self.classifier.fit(X_train, y_train)
+            
+            # Storing test data for prediction
+            self.X_test = X_test
+            self.y_test = y_test
+            
+            messagebox.showinfo("Model Training", "Model trained successfully!")
+        else:
+            messagebox.showerror("Error", "Please load the dataset first.")
+        
+    def predict(self):
+        if self.classifier is not None:
+            y_pred = self.classifier.predict(self.X_test)
+            self.df_test = self.X_test.copy()
+            self.df_test['infected'] = self.y_test
+            self.df_test['predicted_infected'] = y_pred
+            
+            print("Predicted Test Results: ", y_pred)
+            messagebox.showinfo("Prediction Results", f"Predicted Test Results: {y_pred}")
+            
+            self.plot_data_visualizations()
+        else:
+            messagebox.showerror("Error", "Please train the model first.")
+            
+    def plot_data_visualizations(self):
+        # Line Plot
+        plt.figure()
+        sns.lineplot(data=self.df_test)
+        plt.title("Line Plot")
+        plt.show()
+        
+        # Density Plot
+        plt.figure()
+        sns.kdeplot(data=self.df_test, x="infected", y="predicted_infected", shade=True)
+        plt.title("Density Plot")
+        plt.show()
+        
+        # Scatter Plot
+        plt.figure()
+        sns.scatterplot(data=self.df_test, x='infected', y='predicted_infected')
+        plt.title("Scatter Plot")
+        plt.show()
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = AIDSInfectionPredictionApp(root)
+    root.mainloop()
+
+#Link For Project Documentation : https://docs.google.com/document/d/1jN29cYeD9XMLWw-4VauNOUQD8VgRaXKHMRS3_g370NQ/edit?usp=sharing
