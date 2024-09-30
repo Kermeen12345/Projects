@@ -1,0 +1,1923 @@
+import tkinter as tk
+from tkinter import scrolledtext
+from tkinter import messagebox
+import tkinter.font as font
+import random
+import matplotlib.pyplot as plt
+import networkx as nx
+from collections import deque, defaultdict, Counter
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import heapq
+from itertools import permutations
+import math
+from tkinter import *
+
+class StackGUI:
+    def __init__(self, root):
+        """Initialize the GUI components for the Stack."""
+        self.root = root
+        self.root.title("Practical 1")
+        self.root.state("zoomed")
+        self.root['bg'] = 'light blue'
+
+        # Configuring row and column weights for better layout management
+        self.root.columnconfigure((0, 1, 2, 3, 4, 5), weight=10)
+        self.root.rowconfigure((0, 1, 2, 3, 4, 5), weight=1)
+
+        # Add a label to display 'Stack Data Structure' at the top center
+        self.title_label = Label(self.root, text="Stack Data Structure", font=("Script MT Bold", 24), bg='cyan')
+        self.title_label.grid(row=0, column=0, columnspan=6, pady=10)
+
+        # Stack size input label and entry
+        self.size_label = Label(self.root, text="Enter stack size:", font=("Script MT Bold", 14), bg='cyan')
+        self.size_label.grid(row=1, column=0, ipadx=6, ipady=6, padx=10, sticky=E)
+
+        self.size_entry = Entry(self.root, font=("Script MT Bold", 14))
+        self.size_entry.grid(row=1, column=1, ipadx=5, ipady=5, padx=5, sticky=W)
+
+        # Stack operations input label and entry
+        self.input_label = Label(self.root, text="Enter the number:", font=("Script MT Bold", 14), bg='cyan')
+        self.input_label.grid(row=2, column=0, ipadx=7, ipady=7, padx=10, sticky=E)
+
+        self.input_entry = Entry(self.root, font=("Script MT Bold", 14))
+        self.input_entry.grid(row=2, column=1, ipadx=5, ipady=5, padx=5, sticky=W)
+
+        # Buttons for stack operations
+        self.push_button = Button(self.root, text="Push", font=("Script MT Bold", 14), command=self.push)
+        self.push_button.grid(row=2, column=2, ipadx=5, ipady=5, padx=5, sticky=W)
+
+        self.pop_button = Button(self.root, text="Pop", font=("Script MT Bold", 14), command=self.pop)
+        self.pop_button.grid(row=2, column=3, ipadx=5, ipady=5, padx=5, sticky=W)
+
+        self.peek_button = Button(self.root, text="Peek", font=("Script MT Bold", 14), command=self.peek)
+        self.peek_button.grid(row=2, column=4, ipadx=5, ipady=5, padx=5, sticky=W)
+
+        self.is_empty_button = Button(self.root, text="Is Empty", font=("Script MT Bold", 14), command=self.is_empty)
+        self.is_empty_button.grid(row=2, column=5, ipadx=5, ipady=5, padx=5, sticky=W)
+
+        # Canvas to visualize the stack
+        self.canvas = Canvas(self.root, width=600, height=400, bg='white')
+        self.canvas.grid(row=3, column=0, columnspan=6, padx=10, pady=10)
+
+        # Initialize stack and related variables
+        self.stack = []
+        self.stack_top = 0
+        self.stack_size = 5  # Default stack size
+        self.item_height = 40  # Height of each stack item in the visualization
+
+        # Add a button to set the stack size
+        self.set_size_button = Button(self.root, text="Set Stack Size", font=("Script MT Bold", 14), command=self.set_stack_size)
+        self.set_size_button.grid(row=1, column=2, ipadx=5, ipady=5, padx=5, sticky=W)
+
+    def draw_stack(self):
+        """Function to draw the stack on the canvas."""
+        self.canvas.delete("all")
+        y = 400
+        for item in self.stack:
+            self.canvas.create_rectangle(200, y - self.item_height, 400, y, fill="dark turquoise")
+            self.canvas.create_text(300, y - self.item_height // 2, text=item, font=("Script MT Bold", 16))
+            y -= self.item_height
+
+    def set_stack_size(self):
+        """Function to set the stack size based on user input."""
+        try:
+            self.stack_size = int(self.size_entry.get())
+            if self.stack_size <= 0:
+                raise ValueError
+        except ValueError:
+            messagebox.showerror("Error", "Please enter a valid positive integer for stack size")
+
+    def push(self):
+        """Function to push an element onto the stack."""
+        if self.stack_top < self.stack_size:
+            item = self.input_entry.get()
+            if item:
+                self.stack.append(item)
+                self.input_entry.delete(0, END)
+                self.draw_stack()
+                self.stack_top += 1
+            else:
+                messagebox.showwarning("Warning", "Please enter a number")
+        else:
+            messagebox.showwarning("Warning", "Stack Overflow")
+
+    def pop(self):
+        """Function to pop an element from the stack."""
+        if self.stack:
+            self.stack.pop()
+            self.draw_stack()
+            self.stack_top -= 1
+        else:
+            messagebox.showwarning("Warning", "Stack Underflow")
+
+    def peek(self):
+        """Function to peek at the top element of the stack."""
+        if self.stack:
+            top_item = self.stack[-1]
+            messagebox.showinfo("Peek", f"Top item: {top_item}")
+        else:
+            messagebox.showwarning("Warning", "Stack is empty")
+
+    def is_empty(self):
+        """Function to check if the stack is empty."""
+        if self.stack:
+            messagebox.showinfo("Is Empty", "Stack is not empty")
+        else:
+            messagebox.showinfo("Is Empty", "Stack is empty")
+
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+class LinkedListGUI:
+    def __init__(self, root):
+        self.root = root
+        self.head = None
+        self.size = 0
+        self.max_size = None
+       
+        # Initialize GUI
+        self.root.title("Single Linked List Data Structure")
+        self.root.state("zoomed")
+        self.root['bg'] = 'skyblue'
+       
+        self.root.columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
+        self.root.rowconfigure((0, 1, 2, 3, 4, 5), weight=1)
+
+        self.create_widgets()
+       
+    def create_widgets(self):
+        title_label = Label(self.root, text="Linked List Data Structure", bg='cyan', font=("Script MT Bold", 16))
+        title_label.grid(row=0, column=0, columnspan=6, pady=10)
+
+        Label(self.root, text="Enter the number:", bg='skyblue', font=("Script MT Bold", 12)).grid(row=1, column=0, padx=10, pady=10, sticky=E)
+        self.input_entry = Entry(self.root, font=("Script MT Bold", 12))
+        self.input_entry.grid(row=1, column=1, padx=10, pady=10, sticky=W)
+
+        Label(self.root, text="Set Linked List size:", bg='skyblue', font=("Script MT Bold", 12)).grid(row=1, column=2, padx=10, pady=10, sticky=E)
+        self.size_entry = Entry(self.root, font=("Script MT Bold", 12))
+        self.size_entry.grid(row=1, column=3, padx=10, pady=10, sticky=W)
+        Button(self.root, text="Set Size", command=self.set_linked_list_size, font=("Script MT Bold", 12)).grid(row=1, column=4, padx=10, pady=10, sticky=W)
+
+        Button(self.root, text="Insert at Beginning", command=self.insert_at_beginning, font=("Script MT Bold", 12)).grid(row=2, column=0, padx=10, pady=10)
+        Button(self.root, text="Insert at End", command=self.insert_at_end, font=("Script MT Bold", 12)).grid(row=2, column=1, padx=10, pady=10)
+        Button(self.root, text="Delete at Beginning", command=self.delete_at_beginning, font=("Script MT Bold", 12)).grid(row=2, column=2, padx=10, pady=10)
+        Button(self.root, text="Delete at End", command=self.delete_at_end, font=("Script MT Bold", 12)).grid(row=2, column=3, padx=10, pady=10)
+        Button(self.root, text="Is Empty", command=self.is_empty, font=("Script MT Bold", 12)).grid(row=2, column=4, padx=10, pady=10)
+
+        self.canvas = Canvas(self.root, width=800, height=500, bg='white')
+        self.canvas.grid(row=3, column=0, columnspan=5, padx=10, pady=10)
+
+    def is_empty(self):
+        if self.head is None:
+            messagebox.showinfo("Empty", "Linked list is empty")
+        else:
+            messagebox.showinfo("Not Empty", "Linked list is not empty")
+   
+    def set_linked_list_size(self):
+        try:
+            size = int(self.size_entry.get())
+            if size <= 0:
+                raise ValueError
+            self.max_size = size
+            messagebox.showinfo("Success", f"Linked list size set to {size}")
+        except ValueError:
+            messagebox.showerror("Error", "Please enter a valid positive integer for linked list size")
+
+    def insert_at_beginning(self):
+        data = self.input_entry.get()
+        if data:
+            if self.max_size is not None and self.size >= self.max_size:
+                messagebox.showerror("Error", "Linked list has reached its maximum size")
+            else:
+                new_node = Node(data)
+                new_node.next = self.head
+                self.head = new_node
+                self.size += 1
+                self.update_visualization()
+
+    def insert_at_end(self):
+        data = self.input_entry.get()
+        if data:
+            if self.max_size is not None and self.size >= self.max_size:
+                messagebox.showerror("Error", "Linked list has reached its maximum size")
+            else:
+                new_node = Node(data)
+                if self.is_empty():
+                    self.head = new_node
+                else:
+                    current = self.head
+                    while current.next:
+                        current = current.next
+                    current.next = new_node
+                self.size += 1
+                self.update_visualization()
+
+    def delete_at_beginning(self):
+        if self.is_empty():
+            return
+        deleted_node = self.head
+        self.head = self.head.next
+        self.size -= 1
+        messagebox.showinfo("Delete", f"{deleted_node.data} is deleted from the beginning")
+        self.update_visualization()
+
+    def delete_at_end(self):
+        if self.is_empty():
+            return
+        if self.head.next is None:
+            deleted_node = self.head
+            self.head = None
+        else:
+            current = self.head
+            while current.next.next:
+                current = current.next
+            deleted_node = current.next
+            current.next = None
+        self.size -= 1
+        messagebox.showinfo("Delete", f"{deleted_node.data} is deleted from the end")
+        self.update_visualization()
+
+    def update_visualization(self):
+        self.canvas.delete("all")
+        node = self.head
+        y = 50
+        while node:
+            self.canvas.create_rectangle(100, y, 300, y + 30, fill="lightblue")
+            self.canvas.create_text(200, y + 15, text=str(node.data), font=("Script MT Bold", 12))
+            y += 40
+            node = node.next
+
+# Node class for doubly linked list
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.prev = None
+        self.next = None
+
+# Doubly linked list operations
+class DoublyLinkedList:
+    def __init__(self):
+        self.head = None
+        self.tail = None
+
+    def is_empty(self):
+        return self.head is None
+
+    # Insert at the beginning of the list
+    def insert_at_beginning(self, data):
+        new_node = Node(data)
+        if self.is_empty():
+            self.head = self.tail = new_node
+        else:
+            new_node.next = self.head
+            self.head.prev = new_node
+            self.head = new_node
+
+    # Insert at the end of the list
+    def insert_at_end(self, data):
+        new_node = Node(data)
+        if self.is_empty():
+            self.head = self.tail = new_node
+        else:
+            self.tail.next = new_node
+            new_node.prev = self.tail
+            self.tail = new_node
+
+    # Delete from the beginning of the list
+    def delete_at_beginning(self):
+        if self.is_empty():
+            raise IndexError("delete from empty list")
+        deleted_node = self.head
+        if self.head == self.tail:
+            self.head = self.tail = None
+        else:
+            self.head = self.head.next
+            self.head.prev = None
+        return deleted_node.data
+
+    # Delete from the end of the list
+    def delete_at_end(self):
+        if self.is_empty():
+            raise IndexError("delete from empty list")
+        deleted_node = self.tail
+        if self.head == self.tail:
+            self.head = self.tail = None
+        else:
+            self.tail = self.tail.prev
+            self.tail.next = None
+        return deleted_node.data
+
+    # Traverse the list and return elements as a list
+    def traverse(self):
+        elements = []
+        current = self.head
+        while current:
+            elements.append(current.data)
+            current = current.next
+        return elements
+
+# GUI application for interacting with the doubly linked list
+class DoublyLinkedListGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Doubly Linked List")
+        self.root.state("zoomed")
+        self.root.configure(bg='light blue')
+
+        # Create GUI elements
+        self.label = Label(root, text="Doubly Linked List Data Structure", font=("Script MT Bold", 20), bg="cyan")
+        self.label.grid(row=0, column=0, columnspan=6, pady=10)
+
+        self.entry_label = Label(self.root, text="Enter element:", font=("Calibri", 14), bg="cyan")
+        self.entry_label.grid(row=1, column=0, padx=10, pady=10)
+
+        self.entry = Entry(self.root, width=20, font=("Calibri", 14))
+        self.entry.grid(row=1, column=1, padx=10, pady=10)
+
+        # Buttons for list operations
+        self.insert_beginning_button = Button(self.root, text="Insert at Beginning", font=("Calibri", 14), command=self.insert_at_beginning)
+        self.insert_beginning_button.grid(row=1, column=2, padx=10, pady=10)
+
+        self.insert_end_button = Button(self.root, text="Insert at End", font=("Calibri", 14), command=self.insert_at_end)
+        self.insert_end_button.grid(row=1, column=3, padx=10, pady=10)
+
+        self.delete_beginning_button = Button(self.root, text="Delete at Beginning", font=("Calibri", 14), command=self.delete_at_beginning)
+        self.delete_beginning_button.grid(row=2, column=2, padx=10, pady=10)
+
+        self.delete_end_button = Button(self.root, text="Delete at End", font=("Calibri", 14), command=self.delete_at_end)
+        self.delete_end_button.grid(row=2, column=3, padx=10, pady=10)
+
+        self.traverse_button = Button(self.root, text="Traverse", font=("Calibri", 14), command=self.traverse_list)
+        self.traverse_button.grid(row=2, column=4, padx=10, pady=10)
+
+        self.status_label = Label(self.root, text="", font=("Calibri", 14), bg="cyan")
+        self.status_label.grid(row=3, column=0, columnspan=6, pady=10)
+
+        # Frame and canvas for displaying the list with scrollbar
+        self.list_frame = Frame(self.root, bg="white")
+        self.list_frame.grid(row=4, column=0, columnspan=6, pady=10, sticky="nsew")
+
+        self.canvas = Canvas(self.list_frame, bg="white")
+        self.canvas.pack(side=LEFT, fill=BOTH, expand=True)
+
+        self.scrollbar = Scrollbar(self.list_frame, orient=HORIZONTAL, command=self.canvas.xview)
+        self.scrollbar.pack(side=BOTTOM, fill=X)
+
+        self.canvas.configure(xscrollcommand=self.scrollbar.set)
+        self.canvas.bind('<Configure>', self.on_canvas_configure)
+
+        # Initialize doubly linked list
+        self.dll = DoublyLinkedList()
+
+    # Adjust scroll region when canvas is resized
+    def on_canvas_configure(self, event):
+        self.canvas.configure(scrollregion=self.canvas.bbox('all'))
+
+    # Insert at beginning button callback
+    def insert_at_beginning(self):
+        data = self.entry.get().strip()
+        if data:
+            self.dll.insert_at_beginning(data)
+            self.entry.delete(0, END)
+            self.update_status(f"Inserted at beginning: {data}")
+            self.draw_list()
+        else:
+            messagebox.showwarning("Warning", "Element cannot be empty")
+
+    # Insert at end button callback
+    def insert_at_end(self):
+        data = self.entry.get().strip()
+        if data:
+            self.dll.insert_at_end(data)
+            self.entry.delete(0, END)
+            self.update_status(f"Inserted at end: {data}")
+            self.draw_list()
+        else:
+            messagebox.showwarning("Warning", "Element cannot be empty")
+
+    # Delete at beginning button callback
+    def delete_at_beginning(self):
+        try:
+            data = self.dll.delete_at_beginning()
+            self.update_status(f"Deleted at beginning: {data}")
+            self.draw_list()
+        except IndexError:
+            messagebox.showwarning("Warning", "List is empty")
+
+    # Delete at end button callback
+    def delete_at_end(self):
+        try:
+            data = self.dll.delete_at_end()
+            self.update_status(f"Deleted at end: {data}")
+            self.draw_list()
+        except IndexError:
+            messagebox.showwarning("Warning", "List is empty")
+
+    # Traverse button callback
+    def traverse_list(self):
+        elements = self.dll.traverse()
+        self.update_status(f"Traversing the list: {' <--> '.join(elements)}")
+        self.draw_list()
+
+    # Update status label text
+    def update_status(self, message):
+        self.status_label.config(text=message)
+
+    # Draw the list on the canvas
+    def draw_list(self):
+        self.canvas.delete("all")
+        if self.dll.head:
+            x_start = 50
+            y_start = 50
+            box_width = 50
+            box_height = 30
+            padding = 10
+            current = self.dll.head
+            while current:
+                x = x_start
+                self.canvas.create_rectangle(x, y_start, x + box_width, y_start + box_height, fill="lightblue")
+                self.canvas.create_text(x + box_width / 2, y_start + box_height / 2, text=current.data, font=("Calibri", 12))
+                x_start += box_width + padding
+                current = current.next
+            self.canvas.configure(scrollregion=self.canvas.bbox('all'))
+
+class QueueGUI:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("Queue Data Structure")
+        self.master.state("zoomed")
+        self.master.configure(bg='light blue')
+
+        # Initialize the queue as an empty list
+        self.queue = []
+
+        # Create GUI elements with cyan background for labels
+        self.label = Label(master, text="Queue Data Structure", font=("Script MT Bold", 20), bg="cyan")
+        self.label.grid(row=0, column=0, columnspan=6, pady=10)
+
+        self.entry_label = Label(master, text="Enter element:", font=("Calibri", 14), bg="cyan")
+        self.entry_label.grid(row=1, column=0, padx=10, pady=10)
+
+        self.entry = Entry(master, width=20, font=("Calibri", 14))
+        self.entry.grid(row=1, column=1, padx=10, pady=10)
+
+        self.enqueue_button = Button(master, text="Enqueue", font=("Calibri", 14), command=self.enqueue_element)
+        self.enqueue_button.grid(row=1, column=2, padx=10, pady=10)
+
+        self.dequeue_button = Button(master, text="Dequeue", font=("Calibri", 14), command=self.dequeue_element)
+        self.dequeue_button.grid(row=1, column=3, padx=10, pady=10)
+
+        self.traverse_button = Button(master, text="Traverse", font=("Calibri", 14), command=self.traverse_queue)
+        self.traverse_button.grid(row=1, column=4, padx=10, pady=10)
+
+        self.status_label = Label(master, text="", font=("Calibri", 14), bg="cyan")
+        self.status_label.grid(row=2, column=0, columnspan=6, pady=10)
+
+        # Add a frame to display the queue with a scrollbar
+        self.queue_frame = Frame(master, bg="white")
+        self.queue_frame.grid(row=3, column=0, columnspan=6, pady=10, sticky="nsew")
+
+        self.canvas = Canvas(self.queue_frame, bg="white")
+        self.canvas.pack(side=LEFT, fill=BOTH, expand=True)
+
+        self.scrollbar = Scrollbar(self.queue_frame, orient=HORIZONTAL, command=self.canvas.xview)
+        self.scrollbar.pack(side=BOTTOM, fill=X)
+
+        self.canvas.configure(xscrollcommand=self.scrollbar.set)
+        self.canvas.bind('<Configure>', self.on_canvas_configure)
+
+    def is_empty(self):
+        return len(self.queue) == 0
+
+    def enqueue(self, element):
+        self.queue.append(element)
+
+    def dequeue(self):
+        if not self.is_empty():
+            return self.queue.pop(0)
+        else:
+            raise IndexError("dequeue from empty queue")
+
+    def traverse(self):
+        if self.is_empty():
+            return []
+        else:
+            return self.queue
+
+    def update_status(self, message):
+        self.status_label.config(text=message)
+
+    def draw_queue(self):
+        self.canvas.delete("all")
+        if not self.is_empty():
+            x_start = 50
+            y_start = 50
+            box_width = 100
+            box_height = 30
+            padding = 10
+            for idx, element in enumerate(self.queue):
+                x = x_start + idx * (box_width + padding)
+                self.canvas.create_rectangle(x, y_start, x + box_width, y_start + box_height, fill="lightblue")
+                self.canvas.create_text(x + box_width / 2, y_start + box_height / 2, text=element, font=("Calibri", 12))
+            self.canvas.configure(scrollregion=self.canvas.bbox('all'))
+
+    def enqueue_element(self):
+        data = self.entry.get().strip()
+        if data:
+            self.enqueue(data)
+            self.entry.delete(0, END)
+            self.update_status(f"Enqueued: {data}")
+            self.draw_queue()
+        else:
+            messagebox.showwarning("Warning", "Element cannot be empty")
+
+    def dequeue_element(self):
+        try:
+            data = self.dequeue()
+            self.update_status(f"Dequeued: {data}")
+            self.draw_queue()
+        except IndexError:
+            messagebox.showwarning("Warning", "Queue is empty")
+
+    def traverse_queue(self):
+        elements = self.traverse()
+        if elements:
+            self.update_status(f"Queue elements: {' -> '.join(elements)}")
+        else:
+            self.update_status("Queue is empty")
+        self.draw_queue()
+
+    def on_canvas_configure(self, event):
+        self.canvas.configure(scrollregion=self.canvas.bbox('all'))
+
+class PriorityQueueGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("S074 Kermeen")
+        self.root.configure(bg='#00FFFF')  # Change background color to cyan
+
+        # Initialize the priority queue
+        self.queue = []
+        self.queue_size = 0
+
+        # GUI Elements
+        Label(root, text="Priority Queue Data Structure", font=("Script MT Bold", 20), bg="#00FFFF").grid(row=0, column=0, columnspan=6, pady=10)
+
+        # Set size row
+        Label(root, text="Enter size of queue:", font=("Script MT Bold", 14), bg="#00FFFF").grid(row=2, column=0, padx=10, pady=10, sticky=W)
+        self.size_entry = Entry(root, width=20, font=("Arial", 14))
+        self.size_entry.grid(row=2, column=1, padx=10, pady=10)
+        Button(root, text="Set Size", font=("Arial", 14), command=self.set_queue_size).grid(row=2, column=2, padx=10, pady=10)
+
+        # Enqueue row
+        Label(root, text="Enter process:", font=("Script MT Bold", 14), bg="#00FFFF").grid(row=3, column=0, padx=10, pady=10, sticky=W)
+        self.entry = Entry(root, width=20, font=("Arial", 14))
+        self.entry.grid(row=3, column=1, padx=10, pady=10)
+
+        # Priority row
+        Label(root, text="Enter priority:", font=("Script MT Bold", 14), bg="#00FFFF").grid(row=4, column=0, padx=10, pady=10, sticky=W)
+        self.priority_entry = Entry(root, width=20, font=("Arial", 14))
+        self.priority_entry.grid(row=4, column=1, padx=10, pady=10)
+
+        # Buttons row
+        Button(root, text="Enqueue", font=("Arial", 14), command=self.enqueue_element).grid(row=5, column=0, padx=10, pady=10)
+        Button(root, text="Dequeue", font=("Arial", 14), command=self.dequeue_element).grid(row=5, column=1, padx=10, pady=10)
+        Button(root, text="Traverse", font=("Arial", 14), command=self.traverse_queue).grid(row=5, column=2, padx=10, pady=10)
+
+        # Status label row
+        self.status_label = Label(root, text="", font=("Arial", 14), bg="#00FFFF")
+        self.status_label.grid(row=6, column=0, columnspan=6, pady=10)
+
+        # Queue display label row
+        self.queue_display_label = Label(root, text="", font=("Arial", 14), bg="#00FFFF")
+        self.queue_display_label.grid(row=7, column=0, columnspan=6, pady=10)
+
+    # Function to check if the queue is empty
+    def is_empty(self):
+        return len(self.queue) == 0
+
+    # Function to check if the queue is full
+    def is_full(self):
+        return len(self.queue) >= self.queue_size
+
+    # Function to set the size of the queue
+    def set_queue_size(self):
+        try:
+            size = int(self.size_entry.get().strip())
+            if size <= 0:
+                messagebox.showerror("Error", "Queue size must be greater than zero")
+            else:
+                self.queue_size = size
+                messagebox.showinfo("Info", f"Queue size set to {size}")
+        except ValueError:
+            messagebox.showerror("Error", "Please enter a valid number for the size")
+
+    # Function to enqueue an element into the queue
+    def enqueue_element(self):
+        try:
+            process = self.entry.get().strip()
+            priority = int(self.priority_entry.get().strip())
+            if process:
+                if self.is_full():
+                    raise OverflowError("Priority Queue is full")
+                else:
+                    self.queue.append((process, priority))
+                    self.queue.sort(key=lambda x: x[1])
+                    self.entry.delete(0, END)
+                    self.priority_entry.delete(0, END)
+                    self.update_status(f"Enqueued: {process} with priority {priority}")
+                    self.draw_queue()
+            else:
+                messagebox.showwarning("Warning", "Process cannot be empty")
+        except ValueError:
+            messagebox.showwarning("Warning", "Please enter a valid priority")
+        except OverflowError:
+            messagebox.showerror("Error", "Priority Queue is full")
+
+    # Function to dequeue an element from the queue
+    def dequeue_element(self):
+        try:
+            if not self.is_empty():
+                process = self.queue.pop(0)[0]
+                self.update_status(f"Dequeued: {process}")
+                self.draw_queue()
+            else:
+                raise IndexError("dequeue from empty priority queue")
+        except IndexError:
+            messagebox.showwarning("Warning", "Priority Queue is empty")
+
+    # Function to traverse and display the elements in the queue
+    def traverse_queue(self):
+        elements = self.queue
+        if elements:
+            self.update_status(f"Queue elements: {' -> '.join(f'{process}({priority})' for process, priority in elements)}")
+        else:
+            self.update_status("Priority Queue is empty")
+        self.draw_queue()
+
+    # Function to update the status label
+    def update_status(self, message):
+        self.status_label.config(text=message)
+
+    # Function to display the current state of the queue
+    def draw_queue(self):
+        elements = self.queue
+        if elements:
+            queue_str = " -> ".join(f"{process}({priority})" for process, priority in elements)
+            self.queue_display_label.config(text=f"Queue: {queue_str}")
+        else:
+            self.queue_display_label.config(text="Queue: ")
+
+class PriorityQueueGUI:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("S074 Kermeen")
+        self.master.configure(bg='cyan')
+        self.master.state('zoomed')
+
+        # Initialize the priority queue and its size
+        self.queue = []
+        self.queue_size = 0
+
+        # Title Label
+        title_label = tk.Label(self.master, text="Priority Queue Operations", font=('Script MT Bold', 20), bg='cyan')
+        title_label.grid(row=0, column=0, columnspan=4, pady=10)
+
+        # Size Entry and Label
+        size_label = tk.Label(self.master, text="Queue Size:", font=('Script MT Bold', 20), bg='cyan')
+        size_label.grid(row=1, column=0, padx=10, pady=5, sticky='e')
+        self.size_entry = tk.Entry(self.master, font=('Script MT Bold', 20))
+        self.size_entry.grid(row=1, column=1, padx=10, pady=5, sticky='w')
+
+        # Enqueue Button
+        enqueue_button = tk.Button(self.master, text="Enqueue", font=('Script MT Bold', 20), command=self.enqueue_operation)
+        enqueue_button.grid(row=2, column=0, padx=10, pady=5)
+
+        # Dequeue Button
+        dequeue_button = tk.Button(self.master, text="Dequeue", font=('Script MT Bold', 20), command=self.dequeue_operation)
+        dequeue_button.grid(row=2, column=1, padx=10, pady=5)
+
+        # Peek Button
+        peek_button = tk.Button(self.master, text="Peek", font=('Script MT Bold', 20), command=self.peek_operation)
+        peek_button.grid(row=2, column=2, padx=10, pady=5)
+
+        # Traverse Button
+        traverse_button = tk.Button(self.master, text="Traverse", font=('Script MT Bold', 20), command=self.traverse_operation)
+        traverse_button.grid(row=2, column=3, padx=10, pady=5)
+
+        # Output Text
+        self.output_text = tk.Text(self.master, height=15, width=80, font=('Script MT Bold', 16), wrap='word')
+        self.output_text.grid(row=3, column=0, columnspan=4, padx=10, pady=10, sticky='nsew')
+
+        # Configure column and row weights
+        self.master.grid_rowconfigure(3, weight=1)
+        for i in range(4):
+            self.master.grid_columnconfigure(i, weight=1)
+
+    # Function to set the size of the queue
+    def set_size(self, size):
+        self.queue_size = int(size)
+
+    # Function to check if the queue is empty
+    def is_empty(self):
+        return len(self.queue) == 0
+
+    # Function to add an item to the queue with its priority
+    def enqueue(self, item, priority):
+        if len(self.queue) >= self.queue_size:
+            return "Overflow. Cannot Enqueue item"
+        heapq.heappush(self.queue, (int(priority), item))
+        return None
+
+    # Function to remove and return the item with the highest priority
+    def dequeue(self):
+        if self.is_empty():
+            return "Underflow. Cannot Dequeue"
+        return heapq.heappop(self.queue)[1]
+
+    # Function to return the item with the highest priority without removing it
+    def peek(self):
+        if self.is_empty():
+            return "Underflow. Cannot Peek"
+        return heapq.nsmallest(1, self.queue)[0][1]
+
+    # Function to traverse and return all items in the queue
+    def traverse(self):
+        if self.is_empty():
+            return "Underflow. Cannot Traverse."
+        return "\n".join(f"Priority: {i} Item: {j}" for i, j in self.queue)
+
+    # Function to handle enqueue operation
+    def enqueue_operation(self):
+        if self.queue_size == 0:
+            size = self.size_entry.get()
+            self.set_size(size)
+        item = self.get_input("Enter the item:")
+        priority = self.get_input(f"Enter the priority of {item}:")
+        result = self.enqueue(item, priority)
+        if result:
+            self.show_message("Error", result)
+        else:
+            self.show_message("Success", f"Enqueued: {item} with priority {priority}")
+
+    # Function to handle dequeue operation
+    def dequeue_operation(self):
+        result = self.dequeue()
+        if result.startswith("Underflow"):
+            self.show_message("Error", result)
+        else:
+            self.show_message("Success", f"Dequeued: {result}")
+
+    # Function to handle peek operation
+    def peek_operation(self):
+        result = self.peek()
+        if result.startswith("Underflow"):
+            self.show_message("Error", result)
+        else:
+            self.show_message("Success", f"Peek: {result}")
+
+    # Function to handle traverse operation
+    def traverse_operation(self):
+        result = self.traverse()
+        self.output_text.delete(1.0, tk.END)
+        self.output_text.insert(tk.END, result)
+
+    # Function to get input from the user
+    def get_input(self, prompt):
+        return simpledialog.askstring("Input", prompt, parent=self.master)
+
+    # Function to show a message box
+    def show_message(self, title, message):
+        messagebox.showinfo(title, message)
+
+# Node class for Huffman tree
+class Node:
+    def __init__(self, char=None, freq=None):
+        self.char = char
+        self.freq = freq
+        self.left = None
+        self.right = None
+
+    def __lt__(self, other):
+        return self.freq < other.freq
+
+# Build the Huffman tree
+def build_huffman_tree(frequencies):
+    heap = [Node(char, freq) for char, freq in frequencies.items()]
+    heapq.heapify(heap)
+
+    while len(heap) > 1:
+        left = heapq.heappop(heap)
+        right = heapq.heappop(heap)
+        merged = Node(freq=left.freq + right.freq)
+        merged.left = left
+        merged.right = right
+        heapq.heappush(heap, merged)
+
+    return heap[0]
+
+# Generate the Huffman codes
+def generate_codes(node, prefix="", codebook={}):
+    if node:
+        if node.char is not None:
+            codebook[node.char] = prefix
+        generate_codes(node.left, prefix + "0", codebook)
+        generate_codes(node.right, prefix + "1", codebook)
+    return codebook
+
+# Encode the data using Huffman coding
+def huffman_encoding(data):
+    if not data:
+        return "", {}, None
+
+    frequencies = Counter(data)
+    root = build_huffman_tree(frequencies)
+    codebook = generate_codes(root)
+    encoded_data = ''.join(codebook[char] for char in data)
+
+    return encoded_data, codebook, root
+
+# Decode the encoded data using the codebook
+def huffman_decoding(encoded_data, codebook):
+    reverse_codebook = {v: k for k, v in codebook.items()}
+    decoded_data = ""
+    current_code = ""
+
+    for bit in encoded_data:
+        current_code += bit
+        if current_code in reverse_codebook:
+            decoded_data += reverse_codebook[current_code]
+            current_code = ""
+
+    return decoded_data
+
+# Visualize the Huffman tree using matplotlib
+def _huffman_tree(root):
+    fig, ax = plt.subplots(figsize=(10, 8))
+    pos = {}
+    labels = {}
+
+    def plot_tree(node, x, y, dx):
+        if node:
+            pos[node] = (x, y)
+            labels[node] = f'{node.char}\n{node.freq}' if node.char else f'{node.freq}'
+            if node.left:
+                ax.plot([x, x - dx], [y - 1, y - 2], 'k-')
+                plot_tree(node.left, x - dx, y - 2, dx / 2)
+            if node.right:
+                ax.plot([x, x + dx], [y - 1, y - 2], 'k-')
+                plot_tree(node.right, x + dx, y - 2, dx / 2)
+
+    plot_tree(root, 0, 0, 4)
+
+    for node, (x, y) in pos.items():
+        ax.text(x, y, labels[node], ha='center', va='center',
+                bbox=dict(boxstyle="round,pad=0.3", edgecolor='black',
+                          facecolor='lightblue'))
+
+    ax.set_xlim(-8, 8)
+    ax.set_ylim(-10, 2)
+    ax.axis('off')
+
+    return fig
+
+# GUI Class for Huffman Coding
+class HuffmanCodingGUI:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("Huffman Coding")
+        self.master.configure(bg="turquoise")
+
+        # Title label
+        self.label_title = tk.Label(master, text="Huffman Coding", bg="turquoise",
+                                     font=("Script MT Bold", 20))
+        self.label_title.pack()
+
+        # Label for data entry
+        self.label_data = tk.Label(master, text="Enter Your Data:", bg="turquoise",
+                                    font=("Script MT Bold", 14))
+        self.label_data.pack()
+
+        # Text area for entering data
+        self.text_data = scrolledtext.ScrolledText(master, height=5, width=50,
+                                                    font=("Script MT Bold", 12))
+        self.text_data.pack()
+
+        # Button to trigger encoding
+        self.button_encode = tk.Button(master, text="Encode", command=self.encode_data,
+                                        font=("Script MT Bold", 14))
+        self.button_encode.pack()
+
+        # Label for displaying encoded data
+        self.label_encoded = tk.Label(master, text="Encoded Data:", bg="turquoise",
+                                       font=("Script MT Bold", 14))
+        self.label_encoded.pack()
+
+        # Text area for displaying encoded data
+        self.text_encoded = scrolledtext.ScrolledText(master, height=5, width=50,
+                                                       font=("Script MT Bold", 12))
+        self.text_encoded.pack()
+
+        # Label for displaying codebook
+        self.label_codebook = tk.Label(master, text="Codebook:", bg="turquoise",
+                                        font=("Script MT Bold", 14))
+        self.label_codebook.pack()
+
+        # Text area for displaying codebook
+        self.text_codebook = scrolledtext.ScrolledText(master, height=5, width=50,
+                                                        font=("Script MT Bold", 12))
+        self.text_codebook.pack()
+
+        # Button to trigger decoding
+        self.button_decode = tk.Button(master, text="Decode", command=self.decode_data,
+                                        font=("Script MT Bold", 14))
+        self.button_decode.pack()
+
+        # Label for displaying decoded data
+        self.label_decoded = tk.Label(master, text="Decoded Data:", bg="turquoise",
+                                       font=("Script MT Bold", 14))
+        self.label_decoded.pack()
+
+        # Text area for displaying decoded data
+        self.text_decoded = scrolledtext.ScrolledText(master, height=5, width=50,
+                                                       font=("Script MT Bold", 12))
+        self.text_decoded.pack()
+
+        # Button to show Huffman tree
+        self.button_tree = tk.Button(master, text="Show Huffman Tree", command=self.show_huffman_tree,
+                                      font=("Script MT Bold", 14))
+        self.button_tree.pack()
+
+    # Function to encode data
+    def encode_data(self):
+        data = self.text_data.get("1.0", tk.END).strip()
+        if not data:
+            return
+        encoded_data, codebook, root = huffman_encoding(data)
+        self.text_encoded.delete("1.0", tk.END)
+        self.text_encoded.insert(tk.END, encoded_data)
+        self.text_codebook.delete("1.0", tk.END)
+        self.text_codebook.insert(tk.END, str(codebook))
+        return root
+
+    # Function to decode data
+    def decode_data(self):
+        encoded_data = self.text_encoded.get("1.0", tk.END).strip()
+        codebook_str = self.text_codebook.get("1.0", tk.END).strip()
+        if not encoded_data or not codebook_str:
+            return
+        try:
+            codebook = eval(codebook_str)
+        except:
+            self.text_decoded.delete("1.0", tk.END)
+            self.text_decoded.insert(tk.END, "Invalid codebook format")
+            return
+        decoded_data = huffman_decoding(encoded_data, codebook)
+        self.text_decoded.delete("1.0", tk.END)
+        self.text_decoded.insert(tk.END, decoded_data)
+
+    # Function to show Huffman tree in a new window
+    def show_huffman_tree(self):
+        root_node = self.encode_data()  # Ensure root is retrieved
+        if root_node:
+            # Create a new Toplevel window
+            new_window = tk.Toplevel(self.master)
+            new_window.title("Huffman Tree")
+
+            # Create a matplotlib figure
+            fig = _huffman_tree(root_node)
+
+            # Add the figure to the Toplevel window
+            canvas = FigureCanvasTkAgg(fig, master=new_window)
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+class Graph:
+    # A simple graph class to represent an undirected graph.
+    def __init__(self):
+        self.graph = {}  # Dictionary to store graph adjacency list
+
+    def add_vertex(self, vertex):
+        # Add a vertex to the graph.
+        if vertex not in self.graph:
+            self.graph[vertex] = []
+
+    def remove_vertex(self, vertex):
+        # Remove a vertex and its edges from the graph.
+        if vertex in self.graph:
+            # Remove vertex from adjacency lists of other vertices
+            for adjacent in self.graph[vertex]:
+                self.graph[adjacent].remove(vertex)
+            del self.graph[vertex]
+
+    def add_edge(self, vertex1, vertex2):
+        # Add an undirected edge between two vertices.
+        if vertex1 in self.graph and vertex2 in self.graph:
+            if vertex2 not in self.graph[vertex1]:
+                self.graph[vertex1].append(vertex2)
+            if vertex1 not in self.graph[vertex2]:
+                self.graph[vertex2].append(vertex1)
+
+    def remove_edge(self, vertex1, vertex2):
+        # Remove an undirected edge between two vertices.
+        if vertex1 in self.graph and vertex2 in self.graph:
+            if vertex2 in self.graph[vertex1]:
+                self.graph[vertex1].remove(vertex2)
+            if vertex1 in self.graph[vertex2]:
+                self.graph[vertex2].remove(vertex1)
+
+    def display(self):
+        # Display the graph in the console.
+        for vertex, edges in self.graph.items():
+            print(f"{vertex}: {edges}")
+
+    def get_tree_levels(self, root):
+        # Get levels of vertices in a tree-like structure starting from the root.
+        levels = {}  # Dictionary to store vertices at each level
+        visited = set()  # Set to track visited vertices
+
+        def dfs(vertex, level):
+            # Depth-first search to determine levels of each vertex.
+            if vertex not in visited:
+                visited.add(vertex)
+                if level not in levels:
+                    levels[level] = []
+                levels[level].append(vertex)
+                for neighbor in self.graph[vertex]:
+                    if neighbor not in visited:
+                        dfs(neighbor, level + 1)
+
+        dfs(root, 0)
+        return levels
+
+
+class GraphAppGUI:
+    # GUI application for the graph using tkinter.
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Graph Application")  # Set window title
+        self.root.configure(bg='turquoise')  # Set background color to turquoise
+
+        self.graph = Graph()  # Create a Graph object
+
+        # Define font for all widgets
+        self.font = ("Script MT Bold", 12)
+
+        self.setup_widgets()  # Setup the GUI widgets
+
+    def setup_widgets(self):
+        # Setup all the GUI widgets.
+
+        # Add top label displaying 'Graph'
+        self.title_label = tk.Label(self.root, text="Graph", font=self.font, bg='turquoise')
+        self.title_label.pack(pady=10)
+
+        # Create and place widgets for vertex input
+        self.vertex_label = tk.Label(self.root, text="Vertex:", font=self.font, bg='turquoise')
+        self.vertex_label.pack()
+        self.vertex_entry = tk.Entry(self.root, font=self.font)
+        self.vertex_entry.pack()
+        self.add_vertex_button = tk.Button(self.root, text="Add Vertex", font=self.font, command=self.add_vertex)
+        self.add_vertex_button.pack()
+
+        # Create and place widgets for edge input
+        self.edge_label1 = tk.Label(self.root, text="Edge Vertex 1:", font=self.font, bg='turquoise')
+        self.edge_label1.pack()
+        self.edge_entry1 = tk.Entry(self.root, font=self.font)
+        self.edge_entry1.pack()
+
+        self.edge_label2 = tk.Label(self.root, text="Edge Vertex 2:", font=self.font, bg='turquoise')
+        self.edge_label2.pack()
+        self.edge_entry2 = tk.Entry(self.root, font=self.font)
+        self.edge_entry2.pack()
+        self.add_edge_button = tk.Button(self.root, text="Add Edge", font=self.font, command=self.add_edge)
+        self.add_edge_button.pack()
+
+        # Canvas for drawing the graph
+        self.canvas = tk.Canvas(self.root, width=600, height=400, bg='white')
+        self.canvas.pack()
+
+        # Button to display the graph
+        self.display_button = tk.Button(self.root, text="Display Graph", font=self.font, command=self.display_graph)
+        self.display_button.pack()
+
+    def add_vertex(self):
+        # Add a vertex to the graph from user input.
+        vertex = self.vertex_entry.get()
+        if vertex:
+            self.graph.add_vertex(vertex)
+            messagebox.showinfo("Success", f"Vertex '{vertex}' added.")
+            self.vertex_entry.delete(0, tk.END)  # Clear the entry field
+        else:
+            messagebox.showwarning("Input Error", "Please enter a vertex.")
+
+    def add_edge(self):
+        # Add an edge between two vertices from user input.
+        vertex1 = self.edge_entry1.get()
+        vertex2 = self.edge_entry2.get()
+        if vertex1 and vertex2:
+            self.graph.add_edge(vertex1, vertex2)
+            messagebox.showinfo("Success", f"Edge '{vertex1} - {vertex2}' added.")
+            self.edge_entry1.delete(0, tk.END)  # Clear the first entry field
+            self.edge_entry2.delete(0, tk.END)  # Clear the second entry field
+        else:
+            messagebox.showwarning("Input Error", "Please enter both vertices.")
+
+    def display_graph(self):
+        # Display the graph on the canvas in a tree-like structure.
+        self.canvas.delete("all")  # Clear the canvas
+
+        if not self.graph.graph:
+            messagebox.showwarning("Graph Empty", "No vertices or edges to display.")
+            return
+
+        # Start drawing the graph from an arbitrary root
+        root = next(iter(self.graph.graph))
+        levels = self.graph.get_tree_levels(root)
+
+        x_start = self.canvas.winfo_width() // 2  # Center the graph horizontally
+        y_start = 50  # Start drawing from the top
+        x_gap = 50  # Horizontal gap between vertices
+        y_gap = 100  # Vertical gap between levels
+        vertex_positions = {}  # Dictionary to store vertex positions on the canvas
+
+        # Position vertices based on their level
+        for level, vertices in levels.items():
+            x_position = x_start - (len(vertices) - 1) * x_gap // 2
+            for vertex in vertices:
+                vertex_positions[vertex] = (x_position, y_start + level * y_gap)
+                x_position += x_gap
+
+        # Draw vertices and edges
+        for vertex, position in vertex_positions.items():
+            x, y = position
+            self.canvas.create_oval(x - 10, y - 10, x + 10, y + 10, fill='blue')  # Draw vertex
+            self.canvas.create_text(x, y, text=vertex, font=self.font, fill='white')  # Label vertex
+
+        # Draw edges
+        for vertex, edges in self.graph.graph.items():
+            x1, y1 = vertex_positions[vertex]
+            for edge in edges:
+                x2, y2 = vertex_positions[edge]
+                self.canvas.create_line(x1, y1, x2, y2, fill='black')  # Draw edge
+
+
+
+
+class TSP:
+    def __init__(self, distance_matrix, forts):
+        self.distance_matrix = distance_matrix
+        self.num_cities = len(distance_matrix)
+        self.forts = forts
+
+    def calculate_total_distance(self, route):
+        total_distance = 0
+        for i in range(len(route) - 1):
+            total_distance += self.distance_matrix[route[i]][route[i + 1]]
+        total_distance += self.distance_matrix[route[-1]][route[0]]
+        return total_distance
+
+    def solve(self):
+        min_distance = math.inf
+        best_route = None
+        for perm in permutations(range(self.num_cities)):
+            current_distance = self.calculate_total_distance(perm)
+            if current_distance < min_distance:
+                min_distance = current_distance
+                best_route = perm
+        return best_route, min_distance
+
+class TSPAppGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("S074 Kermeen")
+        self.root.geometry("1000x700")
+        self.root.configure(bg="turquoise")
+
+        # Header Frame
+        header_frame = tk.Frame(self.root, bg="turquoise")
+        header_frame.pack(fill=tk.X, padx=10, pady=10)
+        header_label = tk.Label(header_frame, text="Travelling Salesman Problem", font=("Script MT Bold", 16), bg="turquoise")
+        header_label.pack(pady=5)
+
+        # Left Frame for Inputs and Buttons
+        left_frame = tk.Frame(self.root, bg="turquoise")
+        left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
+
+        # Input Frame for places and distance matrix
+        input_frame = tk.Frame(left_frame, bg="turquoise")
+        input_frame.pack(pady=10)
+
+        places_label = tk.Label(input_frame, text="Places (comma-separated):", font=("Script MT Bold", 12), bg="turquoise")
+        places_label.grid(row=0, column=0, padx=5, pady=5)
+        self.places_entry = tk.Entry(input_frame)
+        self.places_entry.grid(row=0, column=1, padx=5, pady=5)
+
+        matrix_label = tk.Label(input_frame, text="Distance Matrix (comma-separated rows by semicolon):", font=("Script MT Bold", 12), bg="turquoise")
+        matrix_label.grid(row=1, column=0, padx=5, pady=5)
+        self.matrix_entry = tk.Entry(input_frame)
+        self.matrix_entry.grid(row=1, column=1, padx=5, pady=5)
+
+        # Buttons for actions
+        button_frame = tk.Frame(left_frame, bg="turquoise")
+        button_frame.pack(pady=10)
+
+        solve_tsp_btn = tk.Button(button_frame, text="Solve TSP", command=self.solve_tsp, font=("Script MT Bold", 12))
+        solve_tsp_btn.grid(row=0, column=0, padx=5, pady=5)
+
+        display_graph_btn = tk.Button(button_frame, text="Display TSP Route", command=self.visualize_tsp_route, font=("Script MT Bold", 12))
+        display_graph_btn.grid(row=0, column=1, padx=5, pady=5)
+
+        quit_btn = tk.Button(button_frame, text="Quit", command=self.root.quit, font=("Script MT Bold", 12))
+        quit_btn.grid(row=1, column=0, columnspan=2, padx=5, pady=5)
+
+        # Right Frame for Canvas
+        self.canvas_frame = tk.Frame(self.root, bg="turquoise")
+        self.canvas_frame.pack(side=tk.RIGHT, padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+        # Placeholder for result label
+        self.result_label = tk.Label(left_frame, text="", font=("Script MT Bold", 12), bg="turquoise")
+        self.result_label.pack(pady=10)
+
+    def solve_tsp(self):
+        forts = self.places_entry.get().split(',')
+        forts = [fort.strip() for fort in forts if fort.strip()]
+        num_forts = len(forts)
+
+        matrix_input = self.matrix_entry.get()
+        try:
+            distance_matrix = [[int(x) for x in row.split(',')] for row in matrix_input.split(';')]
+            if len(distance_matrix) != num_forts or any(len(row) != num_forts for row in distance_matrix):
+                raise ValueError
+        except ValueError:
+            messagebox.showerror("Input Error", "Invalid distance matrix input. Check the format.")
+            return
+
+        tsp = TSP(distance_matrix, forts)
+        best_route, min_distance = tsp.solve()
+        route_str = " -> ".join([forts[i] for i in best_route])
+        self.result_label.config(text=f"Optimal Route: {route_str}\nTotal Distance: {min_distance}")
+        self.best_route = best_route
+        self.distance_matrix = distance_matrix
+        self.forts = forts
+        self.min_distance = min_distance
+
+    def visualize_tsp_route(self):
+        if not hasattr(self, 'best_route'):
+            messagebox.showerror("Error", "Solve the TSP first.")
+            return
+
+        figure = plt.Figure(figsize=(5, 5), dpi=100)
+        canvas = FigureCanvasTkAgg(figure, self.canvas_frame)
+        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        ax = figure.add_subplot(111)
+        G = nx.Graph()
+
+        for i, fort in enumerate(self.forts):
+            G.add_node(i, label=fort)
+
+        for i in range(len(self.best_route) - 1):
+            G.add_edge(self.best_route[i], self.best_route[i + 1], weight=self.distance_matrix[self.best_route[i]][self.best_route[i + 1]])
+
+        G.add_edge(self.best_route[-1], self.best_route[0], weight=self.distance_matrix[self.best_route[-1]][self.best_route[0]])
+
+        pos = nx.circular_layout(G)
+        nx.draw_networkx_nodes(G, pos, node_size=700, node_color='lightblue', ax=ax)
+        nx.draw_networkx_edges(G, pos, edgelist=G.edges(), width=2, edge_color='gray', ax=ax)
+        edge_labels = {(u, v): f"{G[u][v]['weight']}" for u, v in G.edges()}
+        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, ax=ax)
+        nx.draw_networkx_labels(G, pos, labels={i: fort for i, fort in enumerate(self.forts)}, font_size=12, ax=ax)
+        ax.set_title(f"Optimal TSP Route (Total Distance: {self.min_distance})")
+        ax.axis('off')
+        canvas.draw()
+
+
+class NonCollisionGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("S074 Kermeen")
+        self.root.geometry("600x400")
+        self.root.configure(bg="turquoise")
+
+        self.table = []
+        self.size = 0
+
+        # Header
+        header_frame = tk.Frame(self.root, bg="turquoise")
+        header_frame.pack(pady=10)
+        header_label = tk.Label(header_frame, text="Hash Table Application", font=("Script MT Bold", 16), bg="turquoise")
+        header_label.pack()
+
+        # Input Frame
+        input_frame = tk.Frame(self.root, bg="turquoise")
+        input_frame.pack(pady=10)
+
+        # Size Input
+        size_label = tk.Label(input_frame, text="Size:", font=("Script MT Bold", 12), bg="turquoise")
+        size_label.grid(row=0, column=0, padx=5, pady=5)
+        self.size_entry = tk.Entry(input_frame)
+        self.size_entry.grid(row=0, column=1, padx=5, pady=5)
+
+        # Key Input
+        key_label = tk.Label(input_frame, text="Key:", font=("Script MT Bold", 12), bg="turquoise")
+        key_label.grid(row=1, column=0, padx=5, pady=5)
+        self.key_entry = tk.Entry(input_frame)
+        self.key_entry.grid(row=1, column=1, padx=5, pady=5)
+
+        # Value Input
+        value_label = tk.Label(input_frame, text="Value:", font=("Script MT Bold", 12), bg="turquoise")
+        value_label.grid(row=2, column=0, padx=5, pady=5)
+        self.value_entry = tk.Entry(input_frame)
+        self.value_entry.grid(row=2, column=1, padx=5, pady=5)
+
+        # Buttons
+        button_frame = tk.Frame(self.root, bg="turquoise")
+        button_frame.pack(pady=10)
+
+        set_size_btn = tk.Button(button_frame, text="Set Size", command=self.set_size, font=("Script MT Bold", 12))
+        set_size_btn.grid(row=0, column=0, padx=5, pady=5)
+
+        insert_btn = tk.Button(button_frame, text="Insert", command=self.insert, font=("Script MT Bold", 12))
+        insert_btn.grid(row=0, column=1, padx=5, pady=5)
+
+        delete_btn = tk.Button(button_frame, text="Delete", command=self.delete, font=("Script MT Bold", 12))
+        delete_btn.grid(row=1, column=0, padx=5, pady=5)
+
+        search_btn = tk.Button(button_frame, text="Search", command=self.search, font=("Script MT Bold", 12))
+        search_btn.grid(row=1, column=1, padx=5, pady=5)
+
+        traverse_btn = tk.Button(button_frame, text="Traverse", command=self.traverse, font=("Script MT Bold", 12))
+        traverse_btn.grid(row=2, column=0, padx=5, pady=5)
+
+        quit_btn = tk.Button(button_frame, text="Quit", command=self.root.quit, font=("Script MT Bold", 12))
+        quit_btn.grid(row=2, column=1, padx=5, pady=5)
+
+    def set_size(self):
+        try:
+            self.size = int(self.size_entry.get())
+            self.table = [None] * self.size
+            messagebox.showinfo("Success", f"Hash table size set to {self.size}")
+        except ValueError:
+            messagebox.showerror("Error", "Please enter a valid size.")
+
+    def hash_function(self, key):
+        return key % self.size
+
+    def insert(self):
+        try:
+            key = int(self.key_entry.get())
+            value = self.value_entry.get()
+            index = self.hash_function(key)
+            self.table[index] = (key, value)
+            messagebox.showinfo("Success", f"Key {key} inserted with value '{value}'")
+        except ValueError:
+            messagebox.showerror("Error", "Invalid key or value.")
+
+    def delete(self):
+        try:
+            key = int(self.key_entry.get())
+            index = self.hash_function(key)
+            if self.table[index] and self.table[index][0] == key:
+                self.table[index] = None
+                messagebox.showinfo("Success", f"Key {key} deleted.")
+            else:
+                messagebox.showerror("Error", "Key not found.")
+        except ValueError:
+            messagebox.showerror("Error", "Please enter a valid key.")
+
+    def search(self):
+        try:
+            key = int(self.key_entry.get())
+            index = self.hash_function(key)
+            if self.table[index] and self.table[index][0] == key:
+                value = self.table[index][1]
+                messagebox.showinfo("Found", f"Key {key} has value '{value}'")
+            else:
+                messagebox.showinfo("Not Found", f"Key {key} not found.")
+        except ValueError:
+            messagebox.showerror("Error", "Please enter a valid key.")
+
+    def traverse(self):
+        entries = "\n".join([f"Index {i}: Key {key}, Value {value}" for i, (key, value) in enumerate(self.table) if self.table[i] is not None])
+        if entries:
+            messagebox.showinfo("Hash Table", entries)
+        else:
+            messagebox.showinfo("Hash Table", "Hash table is empty.")
+
+class StackApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Stack")
+        self.root.state("zoomed")
+        self.root['bg'] = 'light blue'
+
+        # Configuring row and column weights for better layout management
+        self.root.columnconfigure((0, 1, 2, 3, 4, 5), weight=10)
+        self.root.rowconfigure((0, 1, 2, 3, 4, 5), weight=1)
+
+        # Add a label to display 'Stack Data Structure' at the top center
+        title_label = tk.Label(root, text="Stack Data Structure", font=("Script MT Bold", 24), bg='cyan')
+        title_label.grid(row=0, column=0, columnspan=6, pady=10)
+
+        # Stack size input label and entry
+        size_label = tk.Label(root, text="Enter stack size:", font=("Script MT Bold", 14), bg='cyan')
+        size_label.grid(row=1, column=0, ipadx=6, ipady=6, padx=10, sticky=tk.E)
+
+        self.size_entry = tk.Entry(root, font=("Script MT Bold", 14))
+        self.size_entry.grid(row=1, column=1, ipadx=5, ipady=5, padx=5, sticky=tk.W)
+
+        # Stack operations input label and entry
+        input_label = tk.Label(root, text="Enter the number:", font=("Script MT Bold", 14), bg='cyan')
+        input_label.grid(row=2, column=0, ipadx=7, ipady=7, padx=10, sticky=tk.E)
+
+        self.input_entry = tk.Entry(root, font=("Script MT Bold", 14))
+        self.input_entry.grid(row=2, column=1, ipadx=5, ipady=5, padx=5, sticky=tk.W)
+
+        # Initialize stack and related variables
+        self.stack = []
+        self.stack_top = 0
+        self.stack_size = 5  # Default stack size
+        self.item_height = 40  # Height of each stack item in the visualization
+
+        # Buttons for stack operations
+        push_button = tk.Button(root, text="Push", font=("Script MT Bold", 14), command=self.push)
+        push_button.grid(row=2, column=2, ipadx=5, ipady=5, padx=5, sticky=tk.W)
+
+        pop_button = tk.Button(root, text="Pop", font=("Script MT Bold", 14), command=self.pop)
+        pop_button.grid(row=2, column=3, ipadx=5, ipady=5, padx=5, sticky=tk.W)
+
+        peek_button = tk.Button(root, text="Peek", font=("Script MT Bold", 14), command=self.peek)
+        peek_button.grid(row=2, column=4, ipadx=5, ipady=5, padx=5, sticky=tk.W)
+
+        is_empty_button = tk.Button(root, text="Is Empty", font=("Script MT Bold", 14), command=self.is_empty)
+        is_empty_button.grid(row=2, column=5, ipadx=5, ipady=5, padx=5, sticky=tk.W)
+
+        # Canvas to visualize the stack
+        self.canvas = tk.Canvas(root, width=600, height=400, bg='white')
+        self.canvas.grid(row=3, column=0, columnspan=6, padx=10, pady=10)
+
+        # Add a button to set the stack size
+        set_size_button = tk.Button(root, text="Set Stack Size", font=("Script MT Bold", 14), command=self.set_stack_size)
+        set_size_button.grid(row=1, column=2, ipadx=5, ipady=5, padx=5, sticky=tk.W)
+
+    def set_stack_size(self):
+        try:
+            self.stack_size = int(self.size_entry.get())
+            messagebox.showinfo("Stack Size", f"Stack size set to {self.stack_size}.")
+        except ValueError:
+            messagebox.showerror("Error", "Please enter a valid stack size.")
+
+    def push(self):
+        if self.stack_top < self.stack_size:
+            try:
+                value = int(self.input_entry.get())
+                self.stack.append(value)
+                self.stack_top += 1
+                self.update_stack_visualization()
+                messagebox.showinfo("Success", f"Pushed {value} onto the stack.")
+            except ValueError:
+                messagebox.showerror("Error", "Please enter a valid number.")
+        else:
+            messagebox.showerror("Error", "Stack overflow! Cannot push more items.")
+
+    def pop(self):
+        if self.stack_top > 0:
+            value = self.stack.pop()
+            self.stack_top -= 1
+            self.update_stack_visualization()
+            messagebox.showinfo("Success", f"Popped {value} from the stack.")
+        else:
+            messagebox.showerror("Error", "Stack is empty! Cannot pop.")
+
+    def peek(self):
+        if self.stack_top > 0:
+            value = self.stack[-1]
+            messagebox.showinfo("Top", f"Top item is {value}.")
+        else:
+            messagebox.showerror("Error", "Stack is empty! Cannot peek.")
+
+    def is_empty(self):
+        if self.stack_top == 0:
+            messagebox.showinfo("Stack Status", "Stack is empty.")
+        else:
+            messagebox.showinfo("Stack Status", "Stack is not empty.")
+
+    def update_stack_visualization(self):
+        self.canvas.delete("all")  # Clear previous drawings
+        for index, value in enumerate(reversed(self.stack)):  # Draw from the top of the stack
+            self.canvas.create_rectangle(50, 300 - (index + 1) * self.item_height, 200, 300 - index * self.item_height, fill='skyblue')
+            self.canvas.create_text(125, 300 - (index + 0.5) * self.item_height, text=str(value), font=("Arial", 12))
+
+class Node:
+    def __init__(self, key, value):
+        self.key = key
+        self.value = value
+        self.next = None
+
+class HashTable:
+    def __init__(self, size):
+        self.size = size
+        self.table = [None] * size
+
+    def hash_function(self, key):
+        return key % self.size
+
+    def insert(self, key, value):
+        index = self.hash_function(key)
+        new_node = Node(key, value)
+
+        if self.table[index] is None:
+            self.table[index] = new_node
+        else:
+            current = self.table[index]
+            while current.next:
+                current = current.next
+            current.next = new_node
+
+    def delete(self, key):
+        index = self.hash_function(key)
+        current = self.table[index]
+        prev = None
+
+        while current:
+            if current.key == key:
+                if prev:
+                    prev.next = current.next
+                else:
+                    self.table[index] = current.next
+                return
+            prev = current
+            current = current.next
+
+    def search(self, key):
+        index = self.hash_function(key)
+        current = self.table[index]
+        while current:
+            if current.key == key:
+                return current.value
+            current = current.next
+        return None
+
+    def traverse(self):
+        all_elements = []
+        for index, node in enumerate(self.table):
+            current = node
+            while current:
+                all_elements.append(f"Index {index}: Key {current.key}, Value {current.value}")
+                current = current.next
+        return all_elements
+
+class CollisionGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Hash Table Application")
+        self.root.geometry("800x600")
+        self.root.configure(bg="turquoise")
+        self.hash_table = None
+
+        header_frame = tk.Frame(self.root, bg="turquoise")
+        header_frame.pack(fill=tk.X, padx=10, pady=10)
+        header_label = tk.Label(header_frame, text="Hash Table Application", font=("Script MT Bold", 16), bg="turquoise")
+        header_label.pack(pady=5)
+
+        input_frame = tk.Frame(self.root, bg="turquoise")
+        input_frame.pack(pady=10)
+
+        size_label = tk.Label(input_frame, text="Table Size:", font=("Script MT Bold", 12), bg="turquoise")
+        size_label.grid(row=0, column=0, padx=5, pady=5)
+        self.size_entry = tk.Entry(input_frame)
+        self.size_entry.grid(row=0, column=1, padx=5, pady=5)
+        set_size_button = tk.Button(input_frame, text="Set Size", command=self.set_table_size, font=("Script MT Bold", 12))
+        set_size_button.grid(row=0, column=2, padx=5, pady=5)
+
+        key_label = tk.Label(input_frame, text="Key:", font=("Script MT Bold", 12), bg="turquoise")
+        key_label.grid(row=1, column=0, padx=5, pady=5)
+        self.key_entry = tk.Entry(input_frame)
+        self.key_entry.grid(row=1, column=1, padx=5, pady=5)
+
+        value_label = tk.Label(input_frame, text="Value:", font=("Script MT Bold", 12), bg="turquoise")
+        value_label.grid(row=2, column=0, padx=5, pady=5)
+        self.value_entry = tk.Entry(input_frame)
+        self.value_entry.grid(row=2, column=1, padx=5, pady=5)
+
+        button_frame = tk.Frame(self.root, bg="turquoise")
+        button_frame.pack(pady=10)
+
+        insert_btn = tk.Button(button_frame, text="Insert", command=self.insert_value, font=("Script MT Bold", 12))
+        insert_btn.grid(row=0, column=0, padx=5, pady=5)
+
+        delete_btn = tk.Button(button_frame, text="Delete", command=self.delete_value, font=("Script MT Bold", 12))
+        delete_btn.grid(row=0, column=1, padx=5, pady=5)
+
+        search_btn = tk.Button(button_frame, text="Search", command=self.search_value, font=("Script MT Bold", 12))
+        search_btn.grid(row=0, column=2, padx=5, pady=5)
+
+        traverse_btn = tk.Button(button_frame, text="Traverse", command=self.traverse_table, font=("Script MT Bold", 12))
+        traverse_btn.grid(row=0, column=3, padx=5, pady=5)
+
+        quit_btn = tk.Button(button_frame, text="Quit", command=self.root.quit, font=("Script MT Bold", 12))
+        quit_btn.grid(row=0, column=4, padx=5, pady=5)
+
+        self.output_frame = tk.Frame(self.root, bg="turquoise")
+        self.output_frame.pack(pady=10)
+
+        self.output_text = tk.Text(self.output_frame, height=10, width=60, font=("Script MT Bold", 12))
+        self.output_text.pack()
+
+    def set_table_size(self):
+        size = self.size_entry.get()
+        if size.isdigit():
+            self.hash_table = HashTable(int(size))
+            messagebox.showinfo("Info", f"Hash table of size {size} created.")
+        else:
+            messagebox.showwarning("Warning", "Please enter a valid size.")
+
+    def insert_value(self):
+        if self.hash_table:
+            key = self.key_entry.get()
+            value = self.value_entry.get()
+            if key.isdigit():
+                self.hash_table.insert(int(key), value)
+                messagebox.showinfo("Info", f"Inserted key {key} with value {value}.")
+            else:
+                messagebox.showwarning("Warning", "Key must be an integer.")
+        else:
+            messagebox.showwarning("Warning", "Please set the table size first.")
+
+    def delete_value(self):
+        if self.hash_table:
+            key = self.key_entry.get()
+            if key.isdigit():
+                self.hash_table.delete(int(key))
+                messagebox.showinfo("Info", f"Deleted key {key}.")
+            else:
+                messagebox.showwarning("Warning", "Key must be an integer.")
+        else:
+            messagebox.showwarning("Warning", "Please set the table size first.")
+
+    def search_value(self):
+        if self.hash_table:
+            key = self.key_entry.get()
+            if key.isdigit():
+                value = self.hash_table.search(int(key))
+                if value:
+                    messagebox.showinfo("Info", f"Found value: {value} for key {key}.")
+                else:
+                    messagebox.showinfo("Info", f"Key {key} not found.")
+            else:
+                messagebox.showwarning("Warning", "Key must be an integer.")
+        else:
+            messagebox.showwarning("Warning", "Please set the table size first.")
+
+    def traverse_table(self):
+        if self.hash_table:
+            elements = self.hash_table.traverse()
+            self.output_text.delete(1.0, tk.END)
+            if elements:
+                self.output_text.insert(tk.END, "\n".join(elements))
+            else:
+                self.output_text.insert(tk.END, "Hash table is empty.")
+        else:
+            messagebox.showwarning("Warning", "Please set the table size first.")
+
+
+
+
+#Binary Tree:
+# Class to create a new node
+class Node:
+    def __init__(self, key):
+        self.left = None
+        self.right = None
+        self.val = key
+
+# Class for binary tree operations
+class BinaryTree:
+    def __init__(self):          # Initializing an empty tree with root set to None.
+        self.root = None
+
+    def insert(self, key):       # Adds a new node with the given key
+        if self.root is None:
+            self.root = Node(key)  # Creates root node if tree is empty
+        else:
+            self._insert(self.root, key)
+
+    def _insert(self, root, key):  # Helper function to insert values
+        if key < root.val:  # If key is less than root, go left
+            if root.left is None:
+                root.left = Node(key)  # Insert here if left child is empty
+            else:
+                self._insert(root.left, key)  # Recur to the left
+        else:  # If key is greater than root, go right
+            if root.right is None:
+                root.right = Node(key)  # Insert here if right child is empty
+            else:
+                self._insert(root.right, key)  # Recur to the right
+
+    def inorder_traversal(self):  # Calls helper function for traversal
+        result = []
+        self._inorder_traversal(self.root, result)
+        return result
+
+    def _inorder_traversal(self, root, result):  # Helper function for inorder traversal
+        if root is not None:
+            self._inorder_traversal(root.left, result)
+            result.append(root.val)  # Append the root value to result
+            self._inorder_traversal(root.right, result)
+
+    def delete(self, key):  # Calls helper function for deletion
+        self.root = self._delete(self.root, key)
+
+    def _delete(self, root, key):  # Helper function for deletion
+        if root is None:
+            return root
+        if key < root.val:
+            root.left = self._delete(root.left, key)  # Recur to the left
+        elif key > root.val:
+            root.right = self._delete(root.right, key)  # Recur to the right
+        else:
+            if root.left is None:
+                return root.right  # Replace with right child if left is empty
+            elif root.right is None:
+                return root.left  # Replace with left child if right is empty
+
+            min_larger_node = self._get_min(root.right)
+            root.val = min_larger_node.val
+            root.right = self._delete(root.right, min_larger_node.val)
+        return root
+
+    def _get_min(self, root):  # Helper to find the minimum node in a subtree
+        current = root
+        while current.left is not None:
+            current = current.left
+        return current
+
+# GUI class
+class BinaryTreeGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Binary Tree")
+        self.root.geometry("800x600")
+        self.root.configure(bg="turquoise")
+        self.hash_table = None
+
+
+        # Define the font
+        self.script_font = font.Font(family="Script MT Bold", size=16)
+
+        # Label for Binary Tree Operations
+        self.label = tk.Label(root, text="Binary Tree Operations", font=self.script_font,bg="#00FFFF")
+        self.label.pack(pady=10)
+
+        # Entry for inserting value
+        self.entry = tk.Entry(root)
+        self.entry.pack()
+
+        # Button to insert value
+        self.insert_button = tk.Button(root, text="Insert", command=self.insert_value)
+        self.insert_button.pack()
+
+        # Button to delete value
+        self.delete_button = tk.Button(root, text="Delete", command=self.delete_value)
+        self.delete_button.pack()
+
+        # Button for in-order traversal
+        self.inorder_button = tk.Button(root, text="In-order Traversal", command=self.inorder_traversal)
+        self.inorder_button.pack()
+
+    def insert_value(self):  # Inserts the value entered by the user
+        value = self.entry.get()
+        if value.isdigit():
+            self.bt.insert(int(value))
+            messagebox.showinfo("Success", f"Value {value} inserted.")
+        else:
+            messagebox.showerror("Error", "Please enter a valid integer.")
+
+    def delete_value(self):  # Deletes the value entered by the user
+        value = self.entry.get()
+        if value.isdigit():
+            self.bt.delete(int(value))
+            messagebox.showinfo("Success", f"Value {value} deleted.")
+        else:
+            messagebox.showerror("Error", "Please enter a valid integer.")
+
+    def inorder_traversal(self):  # Displays the in-order traversal of the tree
+        result = self.bt.inorder_traversal()
+        messagebox.showinfo("In-order Traversal", f"Values: {result}")
+
+
+
+# Function to handle button click events and open different data structure windows
+def on_button_click(data_structure):
+    if data_structure == "Abstract Data Type":
+        adt_window = tk.Toplevel(root)
+        adt_window.title("Abstract Data Types (ADT)")
+        adt_window.geometry("800x600")
+        adt_window.configure(bg='turquoise')
+
+        # Content for Abstract Data Type window
+        title = tk.Label(adt_window, text="Abstract Data Types (ADT)", font=("Script MT Bold", 32), bg="turquoise")
+        title.pack(pady=20)
+
+        theory1 = tk.Label(adt_window, text="What is Abstract Data Type: A model for data types defined by behavior.",
+                           font=("Script MT Bold", 20), bg="turquoise")
+        theory1.pack(pady=10)
+
+        theory2 = tk.Label(adt_window, text="How it is used: Used to define structures like List, Stack, Queue.",
+                           font=("Script MT Bold", 20), bg="turquoise")
+        theory2.pack(pady=10)
+
+        theory3 = tk.Label(adt_window, text="Advantages: Encapsulation of data and methods.",
+                           font=("Script MT Bold", 20), bg="turquoise")
+        theory3.pack(pady=10)
+
+        theory4 = tk.Label(adt_window, text="Disadvantages: Complexity in understanding and implementing.",
+                           font=("Script MT Bold", 20), bg="turquoise")
+        theory4.pack(pady=10)
+
+        theory5 = tk.Label(adt_window, text="Time Complexity: Depends on the operation performed.",
+                           font=("Script MT Bold", 20), bg="turquoise")
+        theory5.pack(pady=10)
+
+        theory6 = tk.Label(adt_window, text="Space Complexity: Depends on the data structure.",
+                           font=("Script MT Bold", 20), bg="turquoise")
+        theory6.pack(pady=10)
+
+        # Back button to close ADT window
+        back_button = tk.Button(adt_window, text="Back", font=("Script MT Bold", 20), command=adt_window.destroy)
+        back_button.pack(pady=30)    
+    if data_structure == "Stack":
+        stack_window = tk.Toplevel(root)
+        app = StackGUI(stack_window)
+    elif data_structure == "Queue":
+        queue_window = tk.Toplevel(root)
+        app = QueueGUI(queue_window)
+    elif data_structure == "Priority Queue":
+        priority_queue_window = tk.Toplevel(root)
+        app = PriorityQueueGUI(priority_queue_window)
+    elif data_structure == "Linked List":
+        linked_list_window = tk.Toplevel(root)
+        app = LinkedListGUI(linked_list_window)
+    elif data_structure == "Doubly Linked List":
+        doubly_linked_list_window = tk.Toplevel(root)
+        app = DoublyLinkedListGUI(doubly_linked_list_window)
+    elif data_structure == "Graph":
+        graph_window = tk.Toplevel(root)
+        app = GraphAppGUI(graph_window)
+    elif data_structure == "No Collision":
+        hash_table_window = tk.Toplevel(root)
+        app = NonCollisionGUI(hash_table_window)
+    elif data_structure == "Binary Tree":
+        binary_tree_window = tk.Toplevel(root)
+        binary_tree_window.title("Binary Tree")
+        app = BinaryTreeGUI(binary_tree_window)
+    elif data_structure == "Huffman Tree":
+        huffman_tree_window = tk.Toplevel(root)
+        app = HuffmanCodingGUI(huffman_tree_window)
+    elif data_structure == "Collision":
+        hashtable_window = tk.Toplevel(root)
+        app = CollisionGUI(hashtable_window)
+    elif data_structure == "TSP":
+        tsp_window = tk.Toplevel(root)
+        app = TSPAppGUI(tsp_window)
+
+# Create the main window
+root = tk.Tk()
+root.title("Data Structure Application")
+root.geometry("800x600")
+root.configure(bg="turquoise")
+
+# Title label
+title_label = tk.Label(root, text="Data Structure Application", font=("Script MT Bold", 32), bg="turquoise")
+title_label.pack(pady=40)
+
+# Author label
+author_label = tk.Label(root, text="by", font=("Script MT Bold", 20), bg="turquoise")
+author_label.pack(pady=5)
+
+# Name label
+name_label = tk.Label(root, text="Kermeen Deboo S074", font=("Script MT Bold", 28), bg="turquoise")
+name_label.pack(pady=5)
+
+# Function to create buttons vertically in a single line
+def create_buttons(parent, items):
+    button_frame = tk.Frame(parent, bg="turquoise")
+    button_frame.pack(pady=10)
+
+    for item in items:
+        button = tk.Button(button_frame, text=item, font=("Times New Roman", 18), fg="navy", bg="white", width=24,
+                           command=lambda x=item: on_button_click(x))
+        button.pack(pady=5)  # Buttons are packed vertically
+
+# Create buttons in a single vertical line
+create_buttons(root, ["Abstract Data Type","Stack", "Queue", "Priority Queue", "Linked List", "Doubly Linked List",
+                      "Binary Tree", "Huffman Tree", "Graph", "TSP", "No Collision", "Collision"])
+
+# Button to start the application
+start_button = tk.Button(root, text="Let's get started", font=("Script MT Bold", 20), command=lambda: messagebox.showinfo("Welcome", "Choose a data structure to start!"))
+start_button.pack(pady=30)
+
+# Start the main loop
+root.mainloop()
